@@ -2,8 +2,9 @@
 	"id": "obsidian_account_manager",
 	"name": "TTRPG Account Manager",
 	"version": "1.0.0",
-	"minAppVersion": "0.15.0",
+	"minAppVersion": "1.5.0",
 	"description": "Login & access control for Obsidian",
   	"author": "DMaterne",
-  	"main": "main.js"
+  	"main": "main.js",
+	"isDesktopOnly": false
 }
