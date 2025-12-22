@@ -114,7 +114,7 @@ export default class AuthentificatorPlugin extends Plugin {
       const createBtn = row.createEl("button", { text: "Create / Update user" });
       createBtn.onclick = () => {
         this.execCommand(
-          "obsidian_account_manager:authentificator-admin-create-update-user"
+          "account-manager:authentificator-admin-create-update-user"
         );
       };
 
@@ -555,7 +555,7 @@ export default class AuthentificatorPlugin extends Plugin {
         box.createEl("p", { text: "No character selected." });
         addActionButton(box, "Select character", () => {
           this.execCommand(
-            "obsidian_account_manager:authentificator-select-character"
+            "account-manager:authentificator-select-character"
           );
         });
         return;
@@ -565,14 +565,14 @@ export default class AuthentificatorPlugin extends Plugin {
         box.createEl("p", { text: "You must login to access this content." });
         addActionButton(box, "Login", () => {
           this.execCommand(
-            "obsidian_account_manager:authentificator-login"
+            "account-manager:authentificator-login"
           );
         });
       }
 
       addActionButton(box, "Open gated note…", () => {
         this.execCommand(
-          "obsidian_account_manager:authentificator-open-gated-note"
+          "account-manager:authentificator-open-gated-note"
         );
       });
     });
@@ -990,7 +990,7 @@ class StatusMenuModal extends Modal {
       .addButton((b) =>
         b.setButtonText("Open").onClick(() => {
           this.close();
-          (this.plugin.app as AppWithCommands).commands.executeCommandById(            "obsidian_account_manager:authentificator-select-character"
+          (this.plugin.app as AppWithCommands).commands.executeCommandById(            "account-manager:authentificator-select-character"
           );
         })
       );
@@ -1001,7 +1001,7 @@ class StatusMenuModal extends Modal {
         b.setButtonText("Open").onClick(() => {
           this.close();
           (this.plugin.app as AppWithCommands).commands.executeCommandById(
-          "obsidian_account_manager:authentificator-login"
+          "account-manager:authentificator-login"
           );
 
         })
@@ -1012,7 +1012,7 @@ class StatusMenuModal extends Modal {
       .addButton((b) =>
         b.setButtonText("Open").onClick(() => {
           this.close();
-          (this.plugin.app as AppWithCommands).commands.executeCommandById(            "obsidian_account_manager:authentificator-open-gated-note"
+          (this.plugin.app as AppWithCommands).commands.executeCommandById(            "account-manager:authentificator-open-gated-note"
           );
         })
       );
@@ -1023,7 +1023,7 @@ class StatusMenuModal extends Modal {
       .addButton((b) =>
         b.setButtonText("Do it").onClick(() => {
           this.close();
-          (this.plugin.app as AppWithCommands).commands.executeCommandById(            "obsidian_account_manager:authentificator-logout"
+          (this.plugin.app as AppWithCommands).commands.executeCommandById(            "account-manager:authentificator-logout"
           );
         })
       );
@@ -1037,7 +1037,7 @@ class StatusMenuModal extends Modal {
         .addButton((b) =>
           b.setButtonText("Open").onClick(() => {
             this.close();
-            (this.plugin.app as AppWithCommands).commands.executeCommandById(              "obsidian_account_manager:authentificator-admin-create-update-user"
+            (this.plugin.app as AppWithCommands).commands.executeCommandById(              "account-manager:authentificator-admin-create-update-user"
             );
           })
         );
@@ -1047,7 +1047,7 @@ class StatusMenuModal extends Modal {
         .addButton((b) =>
           b.setButtonText("Open").onClick(() => {
             this.close();
-            (this.plugin.app as AppWithCommands).commands.executeCommandById(              "obsidian_account_manager:authentificator-admin-toggle-group"
+            (this.plugin.app as AppWithCommands).commands.executeCommandById(              "account-manager:authentificator-admin-toggle-group"
             );
           })
         );
@@ -1057,7 +1057,7 @@ class StatusMenuModal extends Modal {
         .addButton((b) =>
           b.setButtonText("Open").onClick(() => {
             this.close();
-            (this.plugin.app as AppWithCommands).commands.executeCommandById(              "obsidian_account_manager:authentificator-admin-toggle-group-all"
+            (this.plugin.app as AppWithCommands).commands.executeCommandById(              "account-manager:authentificator-admin-toggle-group-all"
             );
           })
         );
@@ -1067,7 +1067,7 @@ class StatusMenuModal extends Modal {
         .addButton((b) =>
           b.setButtonText("Open").onClick(() => {
             this.close();
-            (this.plugin.app as AppWithCommands).commands.executeCommandById(              "obsidian_account_manager:authentificator-admin-reset-temp-groups"
+            (this.plugin.app as AppWithCommands).commands.executeCommandById(              "account-manager:authentificator-admin-reset-temp-groups"
             );
           })
         );
@@ -1078,7 +1078,7 @@ class StatusMenuModal extends Modal {
           b.setButtonText("Open").onClick(() => {
             this.close();
             (this.plugin.app as AppWithCommands).commands.executeCommandById(
-            "obsidian_account_manager:authentificator-admin-who-has-group"
+            "account-manager:authentificator-admin-who-has-group"
           );
 
           })
