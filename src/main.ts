@@ -470,6 +470,7 @@ export default class AuthentificatorPlugin extends Plugin {
       },
     });
 
+    
     // --- Rendering: dndgate codeblock ---
     this.registerMarkdownCodeBlockProcessor("dndgate", async (source, el, ctx) => {
       const parsed = parseDndGate(source);
