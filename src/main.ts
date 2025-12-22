@@ -470,7 +470,7 @@ export default class AuthentificatorPlugin extends Plugin {
       },
     });
 
-    
+
     // --- Rendering: dndgate codeblock ---
     this.registerMarkdownCodeBlockProcessor("dndgate", async (source, el, ctx) => {
       const parsed = parseDndGate(source);
@@ -534,7 +534,7 @@ export default class AuthentificatorPlugin extends Plugin {
         box.createEl("p", { text: "No character selected." });
         addActionButton(box, "Select character", () => {
           this.app.commands.executeCommandById(
-            "authentificator:authentificator-select-character"
+            "obsidian_account_manager:authentificator-select-character"
           );
         });
         return;
@@ -544,14 +544,14 @@ export default class AuthentificatorPlugin extends Plugin {
         box.createEl("p", { text: "You must login to access this content." });
         addActionButton(box, "Login", () => {
           this.app.commands.executeCommandById(
-            "authentificator:authentificator-login"
+            "obsidian_account_manager:authentificator-login"
           );
         });
       }
 
       addActionButton(box, "Open gated note…", () => {
         this.app.commands.executeCommandById(
-          "authentificator:authentificator-open-gated-note"
+          "obsidian_account_manager:authentificator-open-gated-note"
         );
       });
     });
@@ -966,7 +966,7 @@ class StatusMenuModal extends Modal {
         b.setButtonText("Open").onClick(() => {
           this.close();
           this.plugin.app.commands.executeCommandById(
-            "authentificator:authentificator-select-character"
+            "obsidian_account_manager:authentificator-select-character"
           );
         })
       );
@@ -977,7 +977,7 @@ class StatusMenuModal extends Modal {
         b.setButtonText("Open").onClick(() => {
           this.close();
           this.plugin.app.commands.executeCommandById(
-            "authentificator:authentificator-login"
+            "obsidian_account_manager:authentificator-login"
           );
         })
       );
@@ -988,10 +988,11 @@ class StatusMenuModal extends Modal {
         b.setButtonText("Open").onClick(() => {
           this.close();
           this.plugin.app.commands.executeCommandById(
-            "authentificator:authentificator-open-gated-note"
+            "obsidian_account_manager:authentificator-open-gated-note"
           );
         })
       );
+      
 
     new Setting(contentEl)
       .setName("Logout")
@@ -999,7 +1000,7 @@ class StatusMenuModal extends Modal {
         b.setButtonText("Do it").onClick(() => {
           this.close();
           this.plugin.app.commands.executeCommandById(
-            "authentificator:authentificator-logout"
+            "obsidian_account_manager:authentificator-logout"
           );
         })
       );
@@ -1014,7 +1015,7 @@ class StatusMenuModal extends Modal {
           b.setButtonText("Open").onClick(() => {
             this.close();
             this.plugin.app.commands.executeCommandById(
-              "authentificator:authentificator-admin-create-update-user"
+              "obsidian_account_manager:authentificator-admin-create-update-user"
             );
           })
         );
@@ -1025,7 +1026,7 @@ class StatusMenuModal extends Modal {
           b.setButtonText("Open").onClick(() => {
             this.close();
             this.plugin.app.commands.executeCommandById(
-              "authentificator:authentificator-admin-toggle-group"
+              "obsidian_account_manager:authentificator-admin-toggle-group"
             );
           })
         );
@@ -1036,7 +1037,7 @@ class StatusMenuModal extends Modal {
           b.setButtonText("Open").onClick(() => {
             this.close();
             this.plugin.app.commands.executeCommandById(
-              "authentificator:authentificator-admin-toggle-group-all"
+              "obsidian_account_manager:authentificator-admin-toggle-group-all"
             );
           })
         );
@@ -1047,7 +1048,7 @@ class StatusMenuModal extends Modal {
           b.setButtonText("Open").onClick(() => {
             this.close();
             this.plugin.app.commands.executeCommandById(
-              "authentificator:authentificator-admin-reset-temp-groups"
+              "obsidian_account_manager:authentificator-admin-reset-temp-groups"
             );
           })
         );
@@ -1058,7 +1059,7 @@ class StatusMenuModal extends Modal {
           b.setButtonText("Open").onClick(() => {
             this.close();
             this.plugin.app.commands.executeCommandById(
-              "authentificator:authentificator-admin-who-has-group"
+              "obsidian_account_manager:authentificator-admin-who-has-group"
             );
           })
         );
