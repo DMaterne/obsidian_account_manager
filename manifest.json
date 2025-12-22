@@ -3,7 +3,7 @@
   "name": "Account Manager",
   "version": "1.0.0",
   "minAppVersion": "1.5.0",
-  "description": "Character-based authentication and group-based content gating for Obsidian (D&D focused).",
+  "description": "Character-based authentication and group-based content gating (D&D focused).",
   "author": "DMaterne",
   "isDesktopOnly": false
 }
