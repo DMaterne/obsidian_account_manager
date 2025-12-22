@@ -3,7 +3,7 @@
 	"name": "TTRPG Account Manager",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "Login & access control for DnD campaigns",
-  	"author": "Doc",
+	"description": "Login & access control for Obsidian",
+  	"author": "DMaterne",
   	"main": "main.js"
 }

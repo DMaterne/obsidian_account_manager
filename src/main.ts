@@ -11,6 +11,11 @@ import { createHash, randomBytes } from "crypto";
 import { addAbortSignal } from "stream";
 import { MarkdownRenderer } from "obsidian";
 
+interface AppWithCommands extends App {
+  commands: {
+    executeCommandById: (id: string) => void;
+  };
+}
 
 type AuthState = {
   currentCharacter: string | null;
@@ -42,14 +47,18 @@ function addActionButton(parent: HTMLElement, label: string, action: () => void)
 }
 
 type DndGateParsed = { groups: string[]; body: string; requireAuth: boolean };
+
 function parseDndGate(source: string): DndGateParsed {
   const lines = source.split("\n");
   let groups: string[] = [];
-  let requireAuth = true; // ✅ default TRUE
+  let requireAuth = true;
   let startBodyAt = 0;
 
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
+    const raw = lines[i];
+    if (raw === undefined) continue;          // <-- Fix für Zeile 52
+    const line = raw.trim();
+
     if (line === "---") {
       startBodyAt = i + 1;
       break;
@@ -57,13 +66,13 @@ function parseDndGate(source: string): DndGateParsed {
     if (!line) continue;
 
     const mg = line.match(/^groups\s*:\s*(.+)$/i);
-    if (mg) {
+    if (mg && mg[1]) {                        // <-- Fix für Zeile 61
       groups = mg[1].split(",").map((s) => s.trim()).filter(Boolean);
       continue;
     }
 
     const ma = line.match(/^requireAuth\s*:\s*(true|false)$/i);
-    if (ma) {
+    if (ma && ma[1]) {                        // <-- Fix für Zeile 67
       requireAuth = ma[1].toLowerCase() === "true";
       continue;
     }
@@ -72,6 +81,8 @@ function parseDndGate(source: string): DndGateParsed {
   const body = lines.slice(startBodyAt).join("\n");
   return { groups, body, requireAuth };
 }
+
+
 
 export default class AuthentificatorPlugin extends Plugin {
   private state: AuthState = { ...DEFAULT_STATE };
@@ -102,7 +113,7 @@ export default class AuthentificatorPlugin extends Plugin {
 
       const createBtn = row.createEl("button", { text: "Create / Update user" });
       createBtn.onclick = () => {
-        this.app.commands.executeCommandById(
+        this.execCommand(
           "obsidian_account_manager:authentificator-admin-create-update-user"
         );
       };
@@ -286,7 +297,10 @@ export default class AuthentificatorPlugin extends Plugin {
         const idx = users.findIndex((u) => u.name === name);
         const entry: UserEntry = { name, salt, hash, groups };
 
-        if (idx >= 0) users[idx] = entry;
+
+        let target: typeof entry | undefined = undefined;
+        if (idx >= 0) target = entry;
+
         else users.push(entry);
 
         await this.saveUsers(users);
@@ -329,34 +343,41 @@ export default class AuthentificatorPlugin extends Plugin {
         const idx = users.findIndex((u) => u.name === picked.name);
         if (idx < 0) return;
 
-        const set = new Set((users[idx].groups ?? []).map(String));
-        let action: "added" | "removed";
-        if (set.has(g)) {
-          set.delete(g);
-          action = "removed";
-        } else {
-          set.add(g);
-          action = "added";
+        const target = users[idx];
+        if (!target) return;
+
+        // ab hier nur noch target benutzen
+        const set = new Set((target.groups ?? []).map(String));
+        // ... set bearbeiten
+        target.groups = Array.from(set);
+
+        if (this.state.currentCharacter === target.name && this.state.isAuthenticated) {
+          this.state.currentGroups = target.groups ?? [];
         }
-        users[idx].groups = Array.from(set);
+
+
 
         await this.saveUsers(users);
 
         // refresh session groups if same user currently logged in
         if (
-          this.state.currentCharacter === users[idx].name &&
+          this.state.currentCharacter === target.name &&
           this.state.isAuthenticated
         ) {
-          this.state.currentGroups = users[idx].groups ?? [];
+          this.state.currentGroups = target.groups ?? [];
           await this.saveData(this.state);
           this.renderStatus();
         }
 
         this.refreshAllMarkdownViews();
+
+        const wasAdded = target.groups?.includes(g) ?? false;
+        const action = wasAdded ? "added" : "removed";
+
         new Notice(
-          `✅ ${action.toUpperCase()}: "${g}" ${action === "added" ? "to" : "from"
-          } ${picked.name}`
+          `✅ ${action.toUpperCase()}: "${g}" ${action === "added" ? "to" : "from"} ${picked.name}`
         );
+
       },
     });
 
@@ -533,7 +554,7 @@ export default class AuthentificatorPlugin extends Plugin {
       if (!this.state.currentCharacter) {
         box.createEl("p", { text: "No character selected." });
         addActionButton(box, "Select character", () => {
-          this.app.commands.executeCommandById(
+          this.execCommand(
             "obsidian_account_manager:authentificator-select-character"
           );
         });
@@ -543,14 +564,14 @@ export default class AuthentificatorPlugin extends Plugin {
       if (!this.state.isAuthenticated) {
         box.createEl("p", { text: "You must login to access this content." });
         addActionButton(box, "Login", () => {
-          this.app.commands.executeCommandById(
+          this.execCommand(
             "obsidian_account_manager:authentificator-login"
           );
         });
       }
 
       addActionButton(box, "Open gated note…", () => {
-        this.app.commands.executeCommandById(
+        this.execCommand(
           "obsidian_account_manager:authentificator-open-gated-note"
         );
       });
@@ -571,6 +592,10 @@ export default class AuthentificatorPlugin extends Plugin {
         : "-";
     this.statusEl.setText(`authentificator: ${c} (${lock}) [${g}]`);
   }
+
+    private execCommand(id: string) {
+      (this.app as any).commands?.executeCommandById?.(id);
+    }
 
   private isAdmin(): boolean {
     return this.state.currentCharacter === "Admin" && this.state.isAuthenticated;
@@ -965,8 +990,7 @@ class StatusMenuModal extends Modal {
       .addButton((b) =>
         b.setButtonText("Open").onClick(() => {
           this.close();
-          this.plugin.app.commands.executeCommandById(
-            "obsidian_account_manager:authentificator-select-character"
+          (this.plugin.app as AppWithCommands).commands.executeCommandById(            "obsidian_account_manager:authentificator-select-character"
           );
         })
       );
@@ -976,9 +1000,10 @@ class StatusMenuModal extends Modal {
       .addButton((b) =>
         b.setButtonText("Open").onClick(() => {
           this.close();
-          this.plugin.app.commands.executeCommandById(
-            "obsidian_account_manager:authentificator-login"
+          (this.plugin.app as AppWithCommands).commands.executeCommandById(
+          "obsidian_account_manager:authentificator-login"
           );
+
         })
       );
 
@@ -987,20 +1012,18 @@ class StatusMenuModal extends Modal {
       .addButton((b) =>
         b.setButtonText("Open").onClick(() => {
           this.close();
-          this.plugin.app.commands.executeCommandById(
-            "obsidian_account_manager:authentificator-open-gated-note"
+          (this.plugin.app as AppWithCommands).commands.executeCommandById(            "obsidian_account_manager:authentificator-open-gated-note"
           );
         })
       );
-      
+
 
     new Setting(contentEl)
       .setName("Logout")
       .addButton((b) =>
         b.setButtonText("Do it").onClick(() => {
           this.close();
-          this.plugin.app.commands.executeCommandById(
-            "obsidian_account_manager:authentificator-logout"
+          (this.plugin.app as AppWithCommands).commands.executeCommandById(            "obsidian_account_manager:authentificator-logout"
           );
         })
       );
@@ -1014,8 +1037,7 @@ class StatusMenuModal extends Modal {
         .addButton((b) =>
           b.setButtonText("Open").onClick(() => {
             this.close();
-            this.plugin.app.commands.executeCommandById(
-              "obsidian_account_manager:authentificator-admin-create-update-user"
+            (this.plugin.app as AppWithCommands).commands.executeCommandById(              "obsidian_account_manager:authentificator-admin-create-update-user"
             );
           })
         );
@@ -1025,8 +1047,7 @@ class StatusMenuModal extends Modal {
         .addButton((b) =>
           b.setButtonText("Open").onClick(() => {
             this.close();
-            this.plugin.app.commands.executeCommandById(
-              "obsidian_account_manager:authentificator-admin-toggle-group"
+            (this.plugin.app as AppWithCommands).commands.executeCommandById(              "obsidian_account_manager:authentificator-admin-toggle-group"
             );
           })
         );
@@ -1036,8 +1057,7 @@ class StatusMenuModal extends Modal {
         .addButton((b) =>
           b.setButtonText("Open").onClick(() => {
             this.close();
-            this.plugin.app.commands.executeCommandById(
-              "obsidian_account_manager:authentificator-admin-toggle-group-all"
+            (this.plugin.app as AppWithCommands).commands.executeCommandById(              "obsidian_account_manager:authentificator-admin-toggle-group-all"
             );
           })
         );
@@ -1047,8 +1067,7 @@ class StatusMenuModal extends Modal {
         .addButton((b) =>
           b.setButtonText("Open").onClick(() => {
             this.close();
-            this.plugin.app.commands.executeCommandById(
-              "obsidian_account_manager:authentificator-admin-reset-temp-groups"
+            (this.plugin.app as AppWithCommands).commands.executeCommandById(              "obsidian_account_manager:authentificator-admin-reset-temp-groups"
             );
           })
         );
@@ -1058,9 +1077,10 @@ class StatusMenuModal extends Modal {
         .addButton((b) =>
           b.setButtonText("Open").onClick(() => {
             this.close();
-            this.plugin.app.commands.executeCommandById(
-              "obsidian_account_manager:authentificator-admin-who-has-group"
-            );
+            (this.plugin.app as AppWithCommands).commands.executeCommandById(
+            "obsidian_account_manager:authentificator-admin-who-has-group"
+          );
+
           })
         );
     }
