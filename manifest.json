@@ -5,6 +5,5 @@
   "minAppVersion": "1.5.0",
   "description": "Character-based authentication and group-based content gating for Obsidian (D&D focused).",
   "author": "DMaterne",
-  "authorUrl": "https://github.com/DMaterne",
   "isDesktopOnly": false
 }
