@@ -101,10 +101,10 @@ When installing the plugin, the "Admin" profile is created. To login, open the o
 
 To create a new user profile, you need to be logged in as "Admin". Executing the command "TTRPG Account Manager: Create User Profile" will show a widow where you can setup a new user profile. To do this enter a name and password for the profile. Additionally you can set the first accesss group the user should be assigned to.
 
-#### Setting up access groups
+# Setting up access groups
 
 
-#### Restricting file access
+# Restricting file access
 
 To restrict the reading access of a file, you need to put the following head on the top of your file:
 
