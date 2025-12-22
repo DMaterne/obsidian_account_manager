@@ -88,3 +88,31 @@ If you have multiple URLs, you can also do:
 ## API Documentation
 
 See https://docs.obsidian.md
+
+## Obsidian TTRPG Account Manager
+
+This plugin provides an account manager for your TTRPG games in obsidian. It includes creating accounts, editing accounts, user access groups and more. 
+
+## Using the plugin
+
+When installing the plugin, the "Admin" profile is created. To login, open the obsidian terminal and select the command "TTRPG Account Manager: SelectUser". This will show a list of all current existing users. Select "Admin". To authetificate, enter the command "TTRPG Account Manager: Login(Password)" and enter the password "Passwort". Now you are logged in as admin. Now you are able to use all of the functions of the plugin.
+
+#### Creating new user profiles
+
+To create a new user profile, you need to be logged in as "Admin". Executing the command "TTRPG Account Manager: Create User Profile" will show a widow where you can setup a new user profile. To do this enter a name and password for the profile. Additionally you can set the first accesss group the user should be assigned to.
+
+#### Setting up access groups
+
+
+#### Restricting file access
+
+To restrict the reading access of a file, you need to put the following head on the top of your file:
+
+---
+dnd_access_groups: [group_name1, group_name2]
+dnd_require_auth: true
+---
+
+Here "group_name1" and "group_name2" are exaples for the actual names of your groups. All members of these groups will have reading access for the file. Othe members will see "Access denied" and a button "Open Gated Note". I am still not sure what this button does, but in the future the functunallity will be edited.
+
+
