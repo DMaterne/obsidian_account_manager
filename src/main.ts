@@ -6,10 +6,8 @@ import {
   Setting,
   FuzzySuggestModal,
   TFile,
-} from "obsidian";
-import { createHash, randomBytes } from "crypto";
-import { addAbortSignal } from "stream";
-import { MarkdownRenderer } from "obsidian";
+  MarkdownRenderer,
+} from "obsidian"
 
 interface AppWithCommands extends App {
   commands: {
@@ -33,11 +31,22 @@ const DEFAULT_STATE: AuthState = {
   currentGroups: [],
 };
 
-function sha256Base64(text: string): string {
-  return createHash("sha256").update(text, "utf8").digest("base64");
+function bytesToBase64(bytes: Uint8Array): string {
+  let bin = "";
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin);
 }
+
+async function sha256Base64(text: string): Promise<string> {
+  const data = new TextEncoder().encode(text);
+  const hashBuf = await crypto.subtle.digest("SHA-256", data);
+  return bytesToBase64(new Uint8Array(hashBuf));
+}
+
 function makeSalt(bytes = 16): string {
-  return randomBytes(bytes).toString("base64");
+  const arr = new Uint8Array(bytes);
+  crypto.getRandomValues(arr);
+  return bytesToBase64(arr);
 }
 
 function addActionButton(parent: HTMLElement, label: string, action: () => void) {
@@ -292,7 +301,7 @@ export default class AuthentificatorPlugin extends Plugin {
 
         const users = await this.loadUsers();
         const salt = makeSalt();
-        const hash = sha256Base64(`${salt}:${password}`);
+        const hash = await sha256Base64(`${salt}:${password}`);
 
         const idx = users.findIndex((u) => u.name === name);
         const entry: UserEntry = { name, salt, hash, groups };
@@ -713,7 +722,7 @@ export default class AuthentificatorPlugin extends Plugin {
     const users = await this.loadUsers();
     const u = users.find((x) => x.name === userName);
     if (!u) return false;
-    const candidate = sha256Base64(`${u.salt}:${password}`);
+    const candidate = await sha256Base64(`${u.salt}:${password}`);
     return candidate === u.hash;
   }
 
