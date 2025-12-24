@@ -49,11 +49,16 @@ function makeSalt(bytes = 16): string {
   return bytesToBase64(arr);
 }
 
-function addActionButton(parent: HTMLElement, label: string, action: () => void) {
+function addActionButton(
+  parent: HTMLElement,
+  label: string,
+  action: () => void
+) {
   const btn = parent.createEl("button", { text: label });
-  btn.style.marginRight = "0.5rem";
+  btn.addClass("am-action-btn");
   btn.addEventListener("click", action);
 }
+
 
 type DndGateParsed = { groups: string[]; body: string; requireAuth: boolean };
 
@@ -65,7 +70,7 @@ function parseDndGate(source: string): DndGateParsed {
 
   for (let i = 0; i < lines.length; i++) {
     const raw = lines[i];
-    if (raw === undefined) continue;          // <-- Fix für Zeile 52
+    if (raw === undefined) continue;         
     const line = raw.trim();
 
     if (line === "---") {
@@ -104,12 +109,14 @@ export default class AuthentificatorPlugin extends Plugin {
     // Statusbar
     this.statusEl = this.addStatusBarItem();
     this.renderStatus();
+
     if (this.statusEl) {
-      this.statusEl.style.cursor = "pointer";
+      this.statusEl.addClass("am-status-clickable");
       this.statusEl.addEventListener("click", () => {
         new StatusMenuModal(this.app, this).open();
       });
     }
+
 
     this.registerMarkdownCodeBlockProcessor("dndadmin", async (source, el) => {
       if (!this.isAdmin()) {
@@ -128,12 +135,13 @@ export default class AuthentificatorPlugin extends Plugin {
       };
 
       const reportBtn = row.createEl("button", { text: "Regenerate report" });
-      reportBtn.style.marginLeft = "0.5rem";
+      reportBtn.addClass("am-report-btn");
       reportBtn.onclick = async () => {
         await this.generateUserReportNote();
         this.refreshAllMarkdownViews();
-        new Notice("✅ Report updated");
+        new Notice("Report updated");
       };
+
 
       el.createEl("hr");
 
@@ -759,31 +767,29 @@ class ButtonUserPickModal extends Modal {
   }
 
   onOpen() {
-    const { contentEl } = this;
-    contentEl.empty();
-    contentEl.createEl("h3", { text: "Select character" });
+  const { contentEl } = this;
+  contentEl.empty();
+  contentEl.createEl("h3", { text: "Select character" });
 
-    if (!this.users.length) {
-      contentEl.createEl("p", { text: "No users found." });
-    } else {
-      for (const u of this.users) {
-        const btn = contentEl.createEl("button", { text: u.name });
-        btn.style.display = "block";
-        btn.style.width = "100%";
-        btn.style.margin = "0.4rem 0";
-        btn.addEventListener("click", () => {
-          this.done(u);
-          this.close();
-        });
-      }
+  if (!this.users.length) {
+    contentEl.createEl("p", { text: "No users found." });
+  } else {
+    for (const u of this.users) {
+      const btn = contentEl.createEl("button", { text: u.name });
+      btn.addClass("am-modal-btn");
+      btn.addEventListener("click", () => {
+        this.done(u);
+        this.close();
+      });
     }
+  } // ✅ diese Klammer hat gefehlt
 
-    const cancel = contentEl.createEl("button", { text: "Cancel" });
-    cancel.style.marginTop = "0.8rem";
-    cancel.addEventListener("click", () => {
-      this.done(null);
-      this.close();
-    });
+  const cancel = contentEl.createEl("button", { text: "Cancel" });
+  cancel.addClass("am-modal-cancel");
+  cancel.addEventListener("click", () => {
+    this.done(null);
+    this.close();
+  });
   }
 
   onClose() {

@@ -6,3 +6,25 @@ available in the app when your plugin is enabled.
 If your plugin does not need CSS, delete this file.
 
 */
+.am-modal-btn {
+  display: block;
+  width: 100%;
+  margin: 0.4rem 0;
+}
+.am-modal-cancel {
+  margin-top: 0.8rem;
+}
+
+.am-report-btn {
+  margin-left: 0.5rem;
+  cursor: pointer;
+}
+
+.am-action-btn {
+  margin-right: 0.5rem;
+  cursor: pointer;
+}
+
+.am-status-clickable {
+  cursor: pointer;
+}
