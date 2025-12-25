@@ -515,7 +515,7 @@ export default class AuthentificatorPlugin extends Plugin {
 
       // Admin override
       if (this.isAdmin()) {
-        await MarkdownRenderer.renderMarkdown(parsed.body.trim(), el, ctx.sourcePath, this);
+        await MarkdownRenderer.render(this.app, parsed.body.trim(), el, ctx.sourcePath, this);
         return;
       }
 
@@ -532,7 +532,7 @@ export default class AuthentificatorPlugin extends Plugin {
         return;
       }
 
-      await MarkdownRenderer.renderMarkdown(parsed.body.trim(), el, ctx.sourcePath, this);
+      await MarkdownRenderer.render(this.app, parsed.body.trim(), el, ctx.sourcePath, this);
     });
 
 
