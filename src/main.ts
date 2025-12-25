@@ -985,7 +985,11 @@ class LiveFilePickModal extends FuzzySuggestModal<TFile> {
     return files.filter((f) => (this.plugin as any).canAccessFile(f));
   }
   getItemText(item: TFile): string { return item.path; }
-  async onChooseItem(item: TFile): Promise<void> {
+  onChooseItem(item: TFile): void {
+  void this.handleChoose(item);
+  }
+
+  private async handleChoose(item: TFile): Promise<void> {
     await this.plugin.app.workspace.getLeaf(true).openFile(item);
   }
 }
