@@ -158,7 +158,7 @@ export default class AuthentificatorPlugin extends Plugin {
     // --- Commands ---
     this.addCommand({
       id: "authentificator-admin-setup-admin-area",
-      name: "Admin: Setup Admin Area",
+      name: "Admin: setup admin area",
       callback: async () => {
         if (!this.isAdmin()) {
           new Notice("Admin only, please login as admin.");
@@ -237,7 +237,7 @@ export default class AuthentificatorPlugin extends Plugin {
           await this.saveData(this.state);
           this.renderStatus();
           this.refreshAllMarkdownViews();
-          new Notice("❌ Login failed.");
+          new Notice("Login failed.");
           return;
         }
 
@@ -401,10 +401,10 @@ export default class AuthentificatorPlugin extends Plugin {
     // --- Admin: Toggle group for ALL players ---
     this.addCommand({
       id: "authentificator-admin-toggle-group-all",
-      name: "Admin: Toggle group for ALL players",
+      name: "Admin: toggle group for ALL players",
       callback: async () => {
         if (!this.isAdmin()) {
-          new Notice("🚫 Admin only. Please login as Admin.");
+          new Notice("Admin only, please login as admin.");
           return;
         }
 
@@ -445,7 +445,7 @@ export default class AuthentificatorPlugin extends Plugin {
     // --- Admin: Reset temporary groups (prefix) ---
     this.addCommand({
       id: "authentificator-admin-reset-temp-groups",
-      name: "Admin: Reset temporary groups",
+      name: "Admin: reset temporary groups",
       callback: async () => {
         if (!this.isAdmin()) {
           new Notice("Admin only, please login as admin.");
@@ -478,7 +478,7 @@ export default class AuthentificatorPlugin extends Plugin {
     // --- Admin: Who has group? ---
     this.addCommand({
       id: "authentificator-admin-who-has-group",
-      name: "Admin: Who has group?",
+      name: "Admin: who has group?",
       callback: async () => {
         if (!this.isAdmin()) {
           new Notice("Admin only, please login as admin.");
@@ -528,7 +528,7 @@ export default class AuthentificatorPlugin extends Plugin {
         required.length > 0 && required.some((g) => userGroups.includes(g));
 
       if (!authOk || !groupOk) {
-        el.createEl("div", { text: "🔒 Access denied." });
+        el.createEl("div", { text: "Access denied. 🔒" });
         return;
       }
 
@@ -566,7 +566,7 @@ export default class AuthentificatorPlugin extends Plugin {
 
       el.empty();
       const box = el.createDiv({ cls: "authentificator-denied" });
-      box.createEl("h3", { text: "🔒 Access denied" });
+      box.createEl("h3", { text: "Access denied 🔒" });
 
       if (!this.state.currentCharacter) {
         box.createEl("p", { text: "No character selected." });
@@ -1048,7 +1048,7 @@ class StatusMenuModal extends Modal {
     if ((this.plugin as any).isAdmin()) {
       contentEl.createEl("hr");
       new Setting(contentEl)
-        .setName("Admin: Create/Update user")
+        .setName("Admin: create/update user")
         .addButton((b) =>
           b.setButtonText("Open").onClick(() => {
             this.close();
@@ -1058,7 +1058,7 @@ class StatusMenuModal extends Modal {
         );
 
       new Setting(contentEl)
-        .setName("Admin: Toggle group for user")
+        .setName("Admin: toggle group for user")
         .addButton((b) =>
           b.setButtonText("Open").onClick(() => {
             this.close();
@@ -1068,7 +1068,7 @@ class StatusMenuModal extends Modal {
         );
 
       new Setting(contentEl)
-        .setName("Admin: Toggle group for ALL players")
+        .setName("Admin: toggle group for ALL players")
         .addButton((b) =>
           b.setButtonText("Open").onClick(() => {
             this.close();
@@ -1078,7 +1078,7 @@ class StatusMenuModal extends Modal {
         );
 
       new Setting(contentEl)
-        .setName("Admin: Reset temporary groups")
+        .setName("Admin: reset temporary groups")
         .addButton((b) =>
           b.setButtonText("Open").onClick(() => {
             this.close();
@@ -1088,7 +1088,7 @@ class StatusMenuModal extends Modal {
         );
 
       new Setting(contentEl)
-        .setName("Admin: Who has group?")
+        .setName("Admin: who has group?")
         .addButton((b) =>
           b.setButtonText("Open").onClick(() => {
             this.close();
