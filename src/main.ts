@@ -49,11 +49,16 @@ function makeSalt(bytes = 16): string {
   return bytesToBase64(arr);
 }
 
-function addActionButton(parent: HTMLElement, label: string, action: () => void) {
+function addActionButton(
+  parent: HTMLElement,
+  label: string,
+  action: () => void
+) {
   const btn = parent.createEl("button", { text: label });
-  btn.style.marginRight = "0.5rem";
+  btn.addClass("am-action-btn");
   btn.addEventListener("click", action);
 }
+
 
 type DndGateParsed = { groups: string[]; body: string; requireAuth: boolean };
 
@@ -65,7 +70,7 @@ function parseDndGate(source: string): DndGateParsed {
 
   for (let i = 0; i < lines.length; i++) {
     const raw = lines[i];
-    if (raw === undefined) continue;          // <-- Fix für Zeile 52
+    if (raw === undefined) continue;         
     const line = raw.trim();
 
     if (line === "---") {
@@ -104,23 +109,25 @@ export default class AuthentificatorPlugin extends Plugin {
     // Statusbar
     this.statusEl = this.addStatusBarItem();
     this.renderStatus();
+
     if (this.statusEl) {
-      this.statusEl.style.cursor = "pointer";
+      this.statusEl.addClass("am-status-clickable");
       this.statusEl.addEventListener("click", () => {
         new StatusMenuModal(this.app, this).open();
       });
     }
 
+
     this.registerMarkdownCodeBlockProcessor("dndadmin", async (source, el) => {
       if (!this.isAdmin()) {
-        el.createEl("div", { text: "🔒 Admin only." });
+        el.createEl("div", { text: "Admin only. 🔒" });
         return;
       }
 
       // Buttons row
       const row = el.createDiv();
 
-      const createBtn = row.createEl("button", { text: "Create / Update user" });
+      const createBtn = row.createEl("button", { text: "Create / update user" });
       createBtn.onclick = () => {
         this.execCommand(
           "account-manager:authentificator-admin-create-update-user"
@@ -128,12 +135,13 @@ export default class AuthentificatorPlugin extends Plugin {
       };
 
       const reportBtn = row.createEl("button", { text: "Regenerate report" });
-      reportBtn.style.marginLeft = "0.5rem";
+      reportBtn.addClass("am-report-btn");
       reportBtn.onclick = async () => {
         await this.generateUserReportNote();
         this.refreshAllMarkdownViews();
-        new Notice("✅ Report updated");
+        new Notice("Report updated");
       };
+
 
       el.createEl("hr");
 
@@ -153,7 +161,7 @@ export default class AuthentificatorPlugin extends Plugin {
       name: "Admin: Setup Admin Area",
       callback: async () => {
         if (!this.isAdmin()) {
-          new Notice("🚫 Admin only. Please login as Admin.");
+          new Notice("Admin only, please login as admin.");
           return;
         }
 
@@ -182,7 +190,7 @@ export default class AuthentificatorPlugin extends Plugin {
 
         const f = this.app.vault.getAbstractFileByPath("Admin Area/UserManagement.md");
         if (f) await this.app.workspace.getLeaf(true).openFile(f as any);
-        new Notice("✅ Admin Area created/updated.");
+        new Notice("Admin area created/updated.");
       },
     });
 
@@ -241,7 +249,7 @@ export default class AuthentificatorPlugin extends Plugin {
         await this.saveData(this.state);
         this.renderStatus();
         this.refreshAllMarkdownViews();
-        new Notice(`✅ Logged in as ${user}`);
+        new Notice(`Logged in as ${user}`);
       },
     });
 
@@ -272,10 +280,10 @@ export default class AuthentificatorPlugin extends Plugin {
     // --- Admin: Create/Update user ---
     this.addCommand({
       id: "authentificator-admin-create-update-user",
-      name: "Admin: Create/Update user",
+      name: "Admin: create/update user",
       callback: async () => {
         if (!this.isAdmin()) {
-          new Notice("🚫 Admin only. Please login as Admin.");
+          new Notice("Admin only, please login as admin.");
           return;
         }
 
@@ -324,7 +332,7 @@ export default class AuthentificatorPlugin extends Plugin {
       name: "Admin: Toggle group for user",
       callback: async () => {
         if (!this.isAdmin()) {
-          new Notice("🚫 Admin only. Please login as Admin.");
+          new Notice("Admin only, please login as admin.");
           return;
         }
 
@@ -440,7 +448,7 @@ export default class AuthentificatorPlugin extends Plugin {
       name: "Admin: Reset temporary groups",
       callback: async () => {
         if (!this.isAdmin()) {
-          new Notice("🚫 Admin only. Please login as Admin.");
+          new Notice("Admin only, please login as admin.");
           return;
         }
 
@@ -463,7 +471,7 @@ export default class AuthentificatorPlugin extends Plugin {
 
         await this.saveUsers(users);
         this.refreshAllMarkdownViews();
-        new Notice(`✅ Removed all groups starting with "${p}" from all players`);
+        new Notice(`Removed all groups starting with "${p}" from all players`);
       },
     });
 
@@ -473,7 +481,7 @@ export default class AuthentificatorPlugin extends Plugin {
       name: "Admin: Who has group?",
       callback: async () => {
         if (!this.isAdmin()) {
-          new Notice("🚫 Admin only. Please login as Admin.");
+          new Notice("Admin only, please login as admin.");
           return;
         }
 
@@ -759,31 +767,29 @@ class ButtonUserPickModal extends Modal {
   }
 
   onOpen() {
-    const { contentEl } = this;
-    contentEl.empty();
-    contentEl.createEl("h3", { text: "Select character" });
+  const { contentEl } = this;
+  contentEl.empty();
+  contentEl.createEl("h3", { text: "Select character" });
 
-    if (!this.users.length) {
-      contentEl.createEl("p", { text: "No users found." });
-    } else {
-      for (const u of this.users) {
-        const btn = contentEl.createEl("button", { text: u.name });
-        btn.style.display = "block";
-        btn.style.width = "100%";
-        btn.style.margin = "0.4rem 0";
-        btn.addEventListener("click", () => {
-          this.done(u);
-          this.close();
-        });
-      }
+  if (!this.users.length) {
+    contentEl.createEl("p", { text: "No users found." });
+  } else {
+    for (const u of this.users) {
+      const btn = contentEl.createEl("button", { text: u.name });
+      btn.addClass("am-modal-btn");
+      btn.addEventListener("click", () => {
+        this.done(u);
+        this.close();
+      });
     }
+  } // ✅ diese Klammer hat gefehlt
 
-    const cancel = contentEl.createEl("button", { text: "Cancel" });
-    cancel.style.marginTop = "0.8rem";
-    cancel.addEventListener("click", () => {
-      this.done(null);
-      this.close();
-    });
+  const cancel = contentEl.createEl("button", { text: "Cancel" });
+  cancel.addClass("am-modal-cancel");
+  cancel.addEventListener("click", () => {
+    this.done(null);
+    this.close();
+  });
   }
 
   onClose() {
@@ -842,7 +848,7 @@ class CreateUserModal extends Modal {
   onOpen() {
     const { contentEl } = this;
     contentEl.empty();
-    contentEl.createEl("h3", { text: "Create / Update user" });
+    contentEl.createEl("h3", { text: "Create / update user" });
 
     const nameInput = contentEl.createEl("input", {
       type: "text",
