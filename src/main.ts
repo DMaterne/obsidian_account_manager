@@ -329,7 +329,7 @@ export default class AuthentificatorPlugin extends Plugin {
     // --- Admin: Toggle group for user ---
     this.addCommand({
       id: "authentificator-admin-toggle-group",
-      name: "Admin: Toggle group for user",
+      name: "Admin: toggle group for user",
       callback: async () => {
         if (!this.isAdmin()) {
           new Notice("Admin only, please login as admin.");
@@ -401,7 +401,7 @@ export default class AuthentificatorPlugin extends Plugin {
     // --- Admin: Toggle group for ALL players ---
     this.addCommand({
       id: "authentificator-admin-toggle-group-all",
-      name: "Admin: toggle group for ALL players",
+      name: "Admin: toggle group for all players",
       callback: async () => {
         if (!this.isAdmin()) {
           new Notice("Admin only, please login as admin.");
