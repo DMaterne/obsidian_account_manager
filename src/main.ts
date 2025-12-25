@@ -782,7 +782,7 @@ class ButtonUserPickModal extends Modal {
         this.close();
       });
     }
-  } // ✅ diese Klammer hat gefehlt
+  } 
 
   const cancel = contentEl.createEl("button", { text: "Cancel" });
   cancel.addClass("am-modal-cancel");
@@ -918,7 +918,7 @@ class SingleLineModal extends Modal {
     new Setting(contentEl)
       .addButton((b) =>
         b
-          .setButtonText("OK")
+          .setButtonText("Ok")
           .setCta()
           .onClick(() => {
             this.done(this.value.trim() || null);
@@ -998,7 +998,7 @@ class StatusMenuModal extends Modal {
   onOpen() {
     const { contentEl } = this;
     contentEl.empty();
-    contentEl.createEl("h3", { text: "authentificator" });
+    contentEl.createEl("h3", { text: "Authentificator" });
 
     new Setting(contentEl)
       .setName("Select character")
@@ -1068,7 +1068,7 @@ class StatusMenuModal extends Modal {
         );
 
       new Setting(contentEl)
-        .setName("Admin: toggle group for ALL players")
+        .setName("Admin: toggle group for all players")
         .addButton((b) =>
           b.setButtonText("Open").onClick(() => {
             this.close();
