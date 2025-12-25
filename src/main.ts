@@ -515,7 +515,7 @@ export default class AuthentificatorPlugin extends Plugin {
 
       // Admin override
       if (this.isAdmin()) {
-        await MarkdownRenderer.renderMarkdown(parsed.body.trim(), el, ctx.sourcePath, this);
+        await MarkdownRenderer.render(this.app, parsed.body.trim(), el, ctx.sourcePath, this);
         return;
       }
 
@@ -532,7 +532,7 @@ export default class AuthentificatorPlugin extends Plugin {
         return;
       }
 
-      await MarkdownRenderer.renderMarkdown(parsed.body.trim(), el, ctx.sourcePath, this);
+      await MarkdownRenderer.render(this.app, parsed.body.trim(), el, ctx.sourcePath, this);
     });
 
 
@@ -985,7 +985,11 @@ class LiveFilePickModal extends FuzzySuggestModal<TFile> {
     return files.filter((f) => (this.plugin as any).canAccessFile(f));
   }
   getItemText(item: TFile): string { return item.path; }
-  async onChooseItem(item: TFile): Promise<void> {
+  onChooseItem(item: TFile): void {
+  void this.handleChoose(item);
+  }
+
+  private async handleChoose(item: TFile): Promise<void> {
     await this.plugin.app.workspace.getLeaf(true).openFile(item);
   }
 }
