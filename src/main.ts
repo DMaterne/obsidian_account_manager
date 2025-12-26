@@ -7,6 +7,7 @@ import {
   FuzzySuggestModal,
   TFile,
   MarkdownRenderer,
+  Component,
 } from "obsidian"
 
 interface AppWithCommands extends App {
@@ -514,11 +515,22 @@ export default class AuthentificatorPlugin extends Plugin {
       const parsed = parseDndGate(source);
 
       // Admin override
+      // inside your markdown processor
+      const component = new Component();
+
+      // Ensure cleanup when plugin unloads
+      this.register(() => component.unload());
+
       if (this.isAdmin()) {
-        await MarkdownRenderer.render(this.app, parsed.body.trim(), el, ctx.sourcePath, this);
+        await MarkdownRenderer.render(
+          this.app,
+          parsed.body.trim(),
+          el,
+          ctx.sourcePath,
+          component
+        );
         return;
       }
-
       const authed = this.state.isAuthenticated;
       const authOk = parsed.requireAuth ? authed : true;
 
@@ -532,7 +544,7 @@ export default class AuthentificatorPlugin extends Plugin {
         return;
       }
 
-      await MarkdownRenderer.render(this.app, parsed.body.trim(), el, ctx.sourcePath, this);
+      await MarkdownRenderer.render(this.app, parsed.body.trim(), el, ctx.sourcePath, component);
     });
 
 
@@ -918,7 +930,7 @@ class SingleLineModal extends Modal {
     new Setting(contentEl)
       .addButton((b) =>
         b
-          .setButtonText("Ok")
+          .setButtonText("OK")
           .setCta()
           .onClick(() => {
             this.done(this.value.trim() || null);
