@@ -23,6 +23,28 @@ type AuthState = {
   currentGroups: string[];
 };
 
+function isAuthState(v: unknown): v is Partial<AuthState> {
+  if (!v || typeof v !== "object") return false;
+  const o = v as Record<string, unknown>;
+
+  const okCharacter =
+    o.currentCharacter === null ||
+    typeof o.currentCharacter === "string" ||
+    typeof o.currentCharacter === "undefined";
+
+  const okAuthed =
+    typeof o.isAuthenticated === "boolean" ||
+    typeof o.isAuthenticated === "undefined";
+
+  const okGroups =
+    typeof o.currentGroups === "undefined" ||
+    (Array.isArray(o.currentGroups) &&
+      o.currentGroups.every((x) => typeof x === "string"));
+
+  return okCharacter && okAuthed && okGroups;
+}
+
+
 type UserEntry = { name: string; salt: string; hash: string; groups?: string[] };
 type UsersDb = { users: UserEntry[] };
 
@@ -111,8 +133,14 @@ export default class AuthentificatorPlugin extends Plugin {
   private statusEl: HTMLElement | null = null;
 
   async onload() {
-    this.state = { ...DEFAULT_STATE, ...(await this.loadData()) };
-    await this.ensureUsersFile();
+  const raw: unknown = await this.loadData();
+
+  this.state = isAuthState(raw)
+    ? { ...DEFAULT_STATE, ...raw }
+    : { ...DEFAULT_STATE };
+
+  await this.ensureUsersFile();
+
 
     // Statusbar
     this.statusEl = this.addStatusBarItem();
@@ -324,11 +352,11 @@ export default class AuthentificatorPlugin extends Plugin {
         const idx = users.findIndex((u) => u.name === name);
         const entry: UserEntry = { name, salt, hash, groups };
 
-
-        let target: typeof entry | undefined = undefined;
-        if (idx >= 0) target = entry;
-
-        else users.push(entry);
+        if (idx >= 0) {
+          users[idx] = entry; // update existing user
+        } else {
+          users.push(entry); // create new user
+        }
 
         await this.saveUsers(users);
         this.refreshAllMarkdownViews();
@@ -778,9 +806,12 @@ this.registerMarkdownPostProcessor((el, ctx) => {
     const fm = cache?.frontmatter;
     if (!fm) return false;
 
-    const requiredGroups: string[] = Array.isArray(fm.dnd_access_groups)
-      ? fm.dnd_access_groups
+   const raw = (fm as unknown as Record<string, unknown>).dnd_access_groups;
+
+    const requiredGroups: string[] = Array.isArray(raw)
+      ? raw.map((x) => String(x))
       : [];
+
     if (requiredGroups.length === 0) return false; // gated-open list is only for gated notes
 
     const requireAuth: boolean =
