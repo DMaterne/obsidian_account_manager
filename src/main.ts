@@ -8,6 +8,7 @@ import {
   TFile,
   MarkdownRenderer,
   Component,
+  MarkdownView,
 } from "obsidian"
 
 interface AppWithCommands extends App {
@@ -48,6 +49,12 @@ function makeSalt(bytes = 16): string {
   const arr = new Uint8Array(bytes);
   crypto.getRandomValues(arr);
   return bytesToBase64(arr);
+}
+
+function isUsersDb(v: unknown): v is UsersDb {
+  if (!v || typeof v !== "object") return false;
+  const o = v as Record<string, unknown>;
+  return Array.isArray(o.users);
 }
 
 function addActionButton(
@@ -190,7 +197,9 @@ export default class AuthentificatorPlugin extends Plugin {
         this.refreshAllMarkdownViews();
 
         const f = this.app.vault.getAbstractFileByPath("Admin Area/UserManagement.md");
-        if (f) await this.app.workspace.getLeaf(true).openFile(f as any);
+        if (f instanceof TFile) {
+          await this.app.workspace.getLeaf(true).openFile(f);
+        }
         new Notice("Admin area created/updated.");
       },
     });
@@ -269,7 +278,7 @@ export default class AuthentificatorPlugin extends Plugin {
     this.addCommand({
       id: "authentificator-open-gated-note",
       name: "Open gated note…",
-      callback: async () => {
+      callback: () => {
         if (!this.isAdmin() && !this.state.isAuthenticated) {
           new Notice("Please login first.");
           return;
@@ -550,45 +559,45 @@ export default class AuthentificatorPlugin extends Plugin {
 
 
     // --- Rendering: whole-note frontmatter gate + friendly UI ---
-    this.registerMarkdownPostProcessor((el, ctx) => {
-      if (this.isAdmin()) return;
+this.registerMarkdownPostProcessor((el, ctx) => {
+  if (this.isAdmin()) return;
 
-      const file = this.app.vault.getAbstractFileByPath(ctx.sourcePath);
-      if (!file) return;
+  const af = this.app.vault.getAbstractFileByPath(ctx.sourcePath);
+  if (!(af instanceof TFile)) return;
 
-      const cache = this.app.metadataCache.getFileCache(file as any);
-      const fm = cache?.frontmatter;
-      if (!fm) return;
+  const cache = this.app.metadataCache.getFileCache(af);
+  const fm = cache?.frontmatter as unknown as Record<string, unknown> | undefined;
+  if (!fm) return;
 
-      const requiredGroups: string[] = Array.isArray(fm.dnd_access_groups)
-        ? fm.dnd_access_groups
-        : [];
-      if (requiredGroups.length === 0) return;
+  const raw = fm.dnd_access_groups;
+  const requiredGroups: string[] = Array.isArray(raw)
+    ? raw.map((x) => String(x))
+    : [];
+  if (requiredGroups.length === 0) return;
 
-      const requireAuth: boolean =
-        typeof fm.dnd_require_auth === "boolean" ? fm.dnd_require_auth : true;
+  const requireAuth =
+    typeof fm.dnd_require_auth === "boolean" ? fm.dnd_require_auth : true;
 
-      const authed = this.state.isAuthenticated;
-      const authOk = requireAuth ? authed : true;
+  const authed = this.state.isAuthenticated;
+  const authOk = requireAuth ? authed : true;
 
-      const userGroups = this.state.currentGroups ?? [];
-      const groupOk = requiredGroups.some((g) => userGroups.includes(g));
+  const userGroups = this.state.currentGroups ?? [];
+  const groupOk = requiredGroups.some((g) => userGroups.includes(g));
 
-      if (authOk && groupOk) return;
+  if (authOk && groupOk) return;
 
-      el.empty();
-      const box = el.createDiv({ cls: "authentificator-denied" });
-      box.createEl("h3", { text: "Access denied 🔒" });
+  el.empty();
+  const box = el.createDiv({ cls: "authentificator-denied" });
+  box.createEl("h3", { text: "Access denied" });
 
-      if (!this.state.currentCharacter) {
-        box.createEl("p", { text: "No character selected." });
-        addActionButton(box, "Select character", () => {
-          this.execCommand(
-            "account-manager:authentificator-select-character"
-          );
-        });
-        return;
-      }
+  if (!this.state.currentCharacter) {
+    box.createEl("p", { text: "No character selected." });
+    addActionButton(box, "Select character", () => {
+      this.execCommand("account-manager:authentificator-select-character");
+    });
+    return;
+  }
+
 
       if (!this.state.isAuthenticated) {
         box.createEl("p", { text: "You must login to access this content." });
@@ -622,31 +631,30 @@ export default class AuthentificatorPlugin extends Plugin {
     this.statusEl.setText(`authentificator: ${c} (${lock}) [${g}]`);
   }
 
-    private execCommand(id: string) {
-      (this.app as any).commands?.executeCommandById?.(id);
-    }
+    public execCommand(id: string): void {
+    const app = this.app as unknown as AppWithCommands;
+    app.commands.executeCommandById(id);
+  }
 
-  private isAdmin(): boolean {
+
+  public isAdmin(): boolean {
     return this.state.currentCharacter === "Admin" && this.state.isAuthenticated;
   }
 
-  private refreshAllMarkdownViews() {
-    this.app.workspace.iterateAllLeaves((leaf) => {
-      const view: any = leaf.view;
-      if (!view) return;
-      if (view.getViewType?.() === "markdown") {
-        view.previewMode?.rerender?.(true);
-        view.currentMode?.rerender?.(true);
-        view.render?.();
-        const file = view.file;
-        if (file) {
-          leaf
-            .openFile(file, { active: false, state: leaf.getViewState().state })
-            .catch(() => { });
-        }
-      }
-    });
+  private refreshAllMarkdownViews(): void {
+  const leaves = this.app.workspace.getLeavesOfType("markdown");
+
+  for (const leaf of leaves) {
+    const view = leaf.view;
+    if (!(view instanceof MarkdownView)) continue;
+
+    const file = view.file;
+    if (!(file instanceof TFile)) continue;
+
+    void leaf.openFile(file, { active: false });
   }
+}
+
 
   private async ensureFolder(path: string): Promise<void> {
     const existing = this.app.vault.getAbstractFileByPath(path);
@@ -655,45 +663,62 @@ export default class AuthentificatorPlugin extends Plugin {
   }
 
   private async upsertFile(path: string, content: string): Promise<void> {
-    const existing = this.app.vault.getAbstractFileByPath(path);
+  const existing = this.app.vault.getAbstractFileByPath(path);
 
-    if (existing) {
-      await this.app.vault.modify(existing as any, content);
+    if (existing instanceof TFile) {
+      await this.app.vault.modify(existing, content);
       return;
     }
 
+    // Path exists but is a folder -> that's an error state
+    if (existing) {
+      throw new Error(`Cannot write file because a folder exists at: ${path}`);
+    }
+
+    // Ensure parent folder exists
     const slash = path.lastIndexOf("/");
     if (slash > 0) {
       const folder = path.substring(0, slash);
       await this.ensureFolder(folder);
     }
 
-    await this.app.vault.create(path, content).catch(() => { });
+    // Create file
+    await this.app.vault.create(path, content);
   }
 
 
   private async ensureUsersFile(): Promise<UsersDb> {
-    const existing = this.app.vault.getAbstractFileByPath(USERS_PATH);
+  const existing = this.app.vault.getAbstractFileByPath(USERS_PATH);
 
-    if (!existing) {
-      const db: UsersDb = {
-        users: [
-          {
-            name: "Admin",
-            salt: "initAdminSalt",
-            hash: "6fADYzT98VWr970cJ2rD/sEmthlRK9Xq71YHrXYZMZM=",
-            groups: ["admin", "dm"],
-          },
-        ],
-      };
+  if (!existing) {
+    const db: UsersDb = {
+      users: [
+        {
+          name: "Admin",
+          salt: "initAdminSalt",
+          hash: "6fADYzT98VWr970cJ2rD/sEmthlRK9Xq71YHrXYZMZM=",
+          groups: ["admin", "dm"],
+        },
+      ],
+    };
 
-      await this.upsertFile(USERS_PATH, JSON.stringify(db, null, 2));
-      return db;
-    }
-
-    const txt = await this.app.vault.read(existing as any);
-    return JSON.parse(txt) as UsersDb;
+    await this.upsertFile(USERS_PATH, JSON.stringify(db, null, 2));
+    return db;
   }
+
+  if (!(existing instanceof TFile)) {
+    throw new Error(`Users path exists but is not a file: ${USERS_PATH}`);
+  }
+
+  const txt = await this.app.vault.read(existing);
+
+  const parsed: unknown = JSON.parse(txt);
+  if (!isUsersDb(parsed)) {
+    throw new Error(`Invalid users.json format at ${USERS_PATH}`);
+  }
+
+  return parsed;
+}
 
   private async loadUsers(): Promise<UserEntry[]> {
     const db = await this.ensureUsersFile();
@@ -746,7 +771,7 @@ export default class AuthentificatorPlugin extends Plugin {
     return candidate === u.hash;
   }
 
-  private canAccessFile(file: TFile): boolean {
+  public canAccessFile(file: TFile): boolean {
     if (this.isAdmin()) return true;
 
     const cache = this.app.metadataCache.getFileCache(file);
@@ -990,21 +1015,27 @@ class UserPickModal extends FuzzySuggestModal<UserEntry> {
 class LiveFilePickModal extends FuzzySuggestModal<TFile> {
   constructor(app: App, private plugin: AuthentificatorPlugin) {
     super(app);
-    this.setPlaceholder("Type to search gated notes…");
+    this.setPlaceholder("Type to search gated notes.");
   }
+
   getItems(): TFile[] {
     const files = this.plugin.app.vault.getMarkdownFiles();
-    return files.filter((f) => (this.plugin as any).canAccessFile(f));
+    return files.filter((f) => this.plugin.canAccessFile(f));
   }
-  getItemText(item: TFile): string { return item.path; }
+
+  getItemText(item: TFile): string {
+    return item.path;
+  }
+
   onChooseItem(item: TFile): void {
-  void this.handleChoose(item);
+    void this.handleChoose(item);
   }
 
   private async handleChoose(item: TFile): Promise<void> {
     await this.plugin.app.workspace.getLeaf(true).openFile(item);
   }
 }
+
 
 class StatusMenuModal extends Modal {
   constructor(app: App, private plugin: AuthentificatorPlugin) {
@@ -1061,17 +1092,21 @@ class StatusMenuModal extends Modal {
 
 
     // Admin section
-    if ((this.plugin as any).isAdmin()) {
+    if (this.plugin.isAdmin()) {
       contentEl.createEl("hr");
+
       new Setting(contentEl)
-        .setName("Admin: create/update user")
+        .setName("Admin: create or update user")
         .addButton((b) =>
           b.setButtonText("Open").onClick(() => {
             this.close();
-            (this.plugin.app as AppWithCommands).commands.executeCommandById(              "account-manager:authentificator-admin-create-update-user"
+            this.plugin.execCommand(
+              "account-manager:authentificator-admin-create-update-user"
             );
           })
         );
+
+
 
       new Setting(contentEl)
         .setName("Admin: toggle group for user")
