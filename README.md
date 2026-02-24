@@ -384,7 +384,7 @@ Auto-flow: select character → auto-login prompt → auto-open dashboard
 
 Recently unlocked: show players newly accessible notes
 
-Session groups: one-click grant/reset of session_* groups
+Session groups: one-click grant/reset of session_* groups.
 
 Content templates: create gated NPC/Quest/Lore notes via wizard
 
