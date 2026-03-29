@@ -81,6 +81,7 @@ Again: This is primarily designed for **spoiler protection inside Obsidian**, no
 
 markdown
 Code kopieren
+
 2. Ensure these files exist:
 - `manifest.json`
 - `main.js`
