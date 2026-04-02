@@ -395,4 +395,4 @@ Disclaimer
 This plugin is designed for campaign management and spoiler reduction in Obsidian.
 It is not a security product and provides no encryption or strong protection against direct file access.
 
-I am not in any need of money by if you appreciate my work, my 17 year old car is happy about any repair money: buymeacoffee.com/DMaterne
+I am not in any need of money by if you appreciate my work, my 17 year old car is happy about any repair money: [buymeacoffee.com/DMaterne](https://studio.buymeacoffee.com/payout-settings)
